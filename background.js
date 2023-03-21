@@ -1,3 +1,6 @@
+//openAI API method
+//on success, returns the trimmed message response
+//on failure, runs the content script with the error details so the user can see
 async function callGPTAPI(tabId, apiKey, prompt, workItemType) {
   const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
@@ -30,6 +33,7 @@ async function callGPTAPI(tabId, apiKey, prompt, workItemType) {
   throw new Error('GPT API response is not as expected');
 }
 
+//code to trigger the page content injecting
 async function runContentScript(tabId, taskTitle, description, acceptanceCriteria, workItemType) {
   chrome.scripting.executeScript(
     {
@@ -42,39 +46,40 @@ async function runContentScript(tabId, taskTitle, description, acceptanceCriteri
   );
 }
 
-async function fillFields(tabId, apiKey, taskTitle, workItemType) {
+//main function to generate prompts, get answers and call the content injecting method to update the open tab
+async function fillFields(tabId, apiKey, taskOverview, workItemType) {
+
+  //create the prompts for Title, Description and AC
+  let titlePrompt = `Please write the title for the following task as described: "${taskOverview}". Be as concice as possible.`;
+
+  //determine if item type is bug, we need to feed a more custom defect related prompt to the AI
   let descriptionPrompt;
-  if (workItemType == 'https://ablcode.visualstudio.com/Mojito/_workitems/create/Bug'){
-    descriptionPrompt = `Please write a detailed bug description with repro steps for the following defect titled: "${taskTitle}"`;
+  if (workItemType.includes("create/Bug")){
+    descriptionPrompt = `Please write a detailed bug description with repro steps for the following defect as described: "${taskOverview}"`;
   } else {
-    descriptionPrompt = `Please write a detailed description for the following task titled: "${taskTitle}" The result should begin with "This effort is to"`;
+    descriptionPrompt = `Please write a detailed description for the following task as described: "${taskOverview}" The result should begin with "This effort is to"`;
   }
- 
-  let acceptanceCriteriaPrompt = `Please write the acceptance criteria for the following task titled: "${taskTitle}". Be as concice as possible. Include unit testing.`;
-
-  let description = "Loading Description...";
-  let acceptanceCriteria = "Loading Acceptance Criteria..."
+  let acceptanceCriteriaPrompt = `Please write the acceptance criteria for the following task as described: "${taskOverview}". Be as concice as possible. Include unit testing.`;
   
-  runContentScript(tabId, taskTitle, description, acceptanceCriteria, workItemType);
+  runContentScript(tabId, "Loading Title...", "Loading Description...", "Loading Acceptance Criteria...", workItemType);
 
-  description = "Title: " + taskTitle + " \n" + await callGPTAPI(tabId, apiKey, descriptionPrompt, workItemType);
-  acceptanceCriteria = await callGPTAPI(tabId, apiKey, acceptanceCriteriaPrompt, workItemType);
-
+  let taskTitle = await callGPTAPI(tabId, apiKey, titlePrompt, workItemType);
+  console.debug("task title: " + taskTitle);
+  runContentScript(tabId, taskTitle, "Loading Description...", "Loading Acceptance Criteria...", workItemType);
+  let description = "Title: " + taskTitle + " \n" + await callGPTAPI(tabId, apiKey, descriptionPrompt, workItemType);
+  runContentScript(tabId, taskTitle, description, "Loading Acceptance Criteria...", workItemType);
+  let acceptanceCriteria = await callGPTAPI(tabId, apiKey, acceptanceCriteriaPrompt, workItemType);
   runContentScript(tabId, taskTitle, description, acceptanceCriteria, workItemType);
 }
 
-
-
+//listener function to recieve message from popup.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const { apiKey, taskTitle, workItemType } = request;
-  console.debug('Task title received:', taskTitle);
-  console.debug('Task type received:', workItemType);
+  const { apiKey, taskOverview, workItemType } = request;
 
   chrome.tabs.create({ url: workItemType }, (tab) => {
     chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
       if (tabId === tab.id && changeInfo.status === 'complete') {
-        console.debug('Target tab loaded:', tab.url);
-        fillFields(tabId, apiKey, taskTitle, workItemType);
+        fillFields(tabId, apiKey, taskOverview, workItemType);
         chrome.tabs.onUpdated.removeListener(listener);
       }
     });

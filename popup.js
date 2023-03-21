@@ -1,32 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
   const apiKeyInput = document.getElementById('apiKey');
-  const taskTitleInput = document.getElementById('taskTitle');
+  const taskOverviewInput = document.getElementById('taskOverview');
   const vstsProjectNameInput = document.getElementById('vstsProjectName');
   const vstsOrgNameInput = document.getElementById('vstsOrgName');
   const submitButton = document.getElementById('createTask');
 
-  chrome.storage.sync.get('openai_api_key', (data) => {
-    if (data.openai_api_key) {
-      apiKeyInput.value = data.openai_api_key;
+  const getFromStorage = (key, input) => {
+    chrome.storage.sync.get(key, (data) => {
+    if (data[key]) {
+      input.value = data[key];
     }
-  });
+    });
+  };
 
-  chrome.storage.sync.get('vsts_org_name', (data) => {
-    if (data.vsts_org_name) {
-      vstsOrgNameInput.value = data.vsts_org_name;
-    }
-  });
-
-    chrome.storage.sync.get('vsts_project_name', (data) => {
-    if (data.vsts_project_name) {
-      vstsProjectNameInput.value = data.vsts_project_name;
-    }
-  });
+  getFromStorage('openai_api_key', apiKeyInput);
+  getFromStorage('vsts_org_name', vstsOrgNameInput);
+  getFromStorage('vsts_project_name', vstsProjectNameInput);
 
   function getSelectedValue() {
     const selectElement = document.getElementById('workItemType');
-    const selectedValue = selectElement.options[selectElement.selectedIndex].value;
-    console.log("Selected value: ", selectedValue);
+    const selectedValue = selectElement.options[selectElement.selectedIndex].value
     return selectedValue;
   }
 
@@ -34,15 +27,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiKey = apiKeyInput.value;
     const vstsProjectName = vstsProjectNameInput.value;
     const vstsOrgName = vstsOrgNameInput.value;
-    const taskTitle = taskTitleInput.value;
+    const taskOverview = taskOverviewInput.value;
     const workItemType = getSelectedValue().replace(/\*\*\*/g, vstsProjectName).replace(/\$\$\$/g, vstsOrgName);
 
-    if (apiKey && taskTitle && vstsProjectName && vstsOrgName) {
+    if (apiKey && taskOverview && vstsProjectName && vstsOrgName) {
       chrome.storage.sync.set({ openai_api_key: apiKey, vsts_project_name: vstsProjectName, vsts_org_name: vstsOrgName }, () => {
-        chrome.runtime.sendMessage({ apiKey, taskTitle, workItemType });
+        chrome.runtime.sendMessage({ apiKey, taskOverview, workItemType });
       });
     } else {
-      alert('Please enter both OpenAI API Key and Task Title.');
+      alert('Please enter both OpenAI API Key and Task Overview.');
     }
   });
 });

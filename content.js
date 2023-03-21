@@ -2,13 +2,11 @@
   const waitForElement = (selector, callback) => {
     const element = document.querySelector(selector);
     if (element) {
-      console.debug('DOM element found:', element);
       callback(element);
     } else {
       const observer = new MutationObserver(() => {
         const element = document.querySelector(selector);
         if (element) {
-          console.debug('DOM element found by MutationObserver:', element);
           observer.disconnect();
           callback(element);
         }
@@ -19,7 +17,6 @@
 
   const fillField = (selector, value) => {
     waitForElement(selector, (element) => {
-      console.debug(`Filling field (${selector}) with value:`, value);
       element.focus()
       element.value = "";
       element.innerText = "";
@@ -31,19 +28,24 @@
   };
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    const { taskTitle, description, acceptanceCriteria, workItemType } = message;
-    console.debug('Received message:', message, " for workItemType: ", workItemType);
+    let { taskTitle, description, acceptanceCriteria, workItemType } = message;
 
-    if (workItemType == 'https://ablcode.visualstudio.com/Mojito/_workitems/create/Bug'){
-      fillField('[aria-label="Title field"]', taskTitle);
+    //title selector is different between current and preview, 
+    //so we use the placeholder (that is the same) and update it when loaded for now as a workaround
+    let taskElementSelector = '[placeholder="Enter title"]';
+    if (taskTitle != "Loading Title..."){
+      taskElementSelector = '[placeholder="Loading Title..."]'
+    }
+
+    //If it's a Bug, we need to target 'Repro Steps' input instead of 'Description'
+    if (workItemType.includes("create/Bug")){
+      fillField(taskElementSelector, taskTitle);
       fillField('[aria-label="Repro Steps"]', description);
       fillField('[aria-label="Acceptance Criteria"]', acceptanceCriteria);
-      console.log("inserting into RS");
     } else {
-      fillField('[aria-label="Title field"]', taskTitle);
+      fillField(taskElementSelector, taskTitle);
       fillField('[aria-label="Description"]', description);
-      fillField('[aria-label="Acceptance Criteria"]', acceptanceCriteria);
-      console.log("inserting into Description");
+      fillField('[aria-label="Acceptance Criteria"]', acceptanceCriteria)
     }
     
   });
