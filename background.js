@@ -1,4 +1,4 @@
-async function callGPTAPI(tabId, apiKey, prompt) {
+async function callGPTAPI(tabId, apiKey, prompt, workItemType) {
   const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
   const response = await fetch(apiUrl, {
@@ -24,14 +24,14 @@ async function callGPTAPI(tabId, apiKey, prompt) {
   if (response.status == 200 && data.choices && data.choices.length > 0) {
     return data.choices[0].message.content.trim();
   } else {
-  	runContentScript(tabId, "Error", "Error loading description from OpenAI API, please try again later. Error Code: " + response.status, "Error - See above");
+    runContentScript(tabId, "Error", "Error loading description from OpenAI API, please try again later. Error Code: " + response.status, "Error - " data.error.message, workItemType);
   }
 
   throw new Error('GPT API response is not as expected');
 }
 
 async function runContentScript(tabId, taskTitle, description, acceptanceCriteria, workItemType) {
-	chrome.scripting.executeScript(
+  chrome.scripting.executeScript(
     {
       target: { tabId },
       files: ['content.js'],
@@ -45,9 +45,9 @@ async function runContentScript(tabId, taskTitle, description, acceptanceCriteri
 async function fillFields(tabId, apiKey, taskTitle, workItemType) {
   let descriptionPrompt;
   if (workItemType == 'https://ablcode.visualstudio.com/Mojito/_workitems/create/Bug'){
-  	descriptionPrompt = `Please write a detailed bug description with repro steps for the following defect titled: "${taskTitle}"`;
+    descriptionPrompt = `Please write a detailed bug description with repro steps for the following defect titled: "${taskTitle}"`;
   } else {
-  	descriptionPrompt = `Please write a detailed description for the following task titled: "${taskTitle}" The result should begin with "This effort is to"`;
+    descriptionPrompt = `Please write a detailed description for the following task titled: "${taskTitle}" The result should begin with "This effort is to"`;
   }
  
   let acceptanceCriteriaPrompt = `Please write the acceptance criteria for the following task titled: "${taskTitle}". Be as concice as possible. Include unit testing.`;
@@ -57,8 +57,8 @@ async function fillFields(tabId, apiKey, taskTitle, workItemType) {
   
   runContentScript(tabId, taskTitle, description, acceptanceCriteria, workItemType);
 
-  description = "Title: " + taskTitle + " \n" + await callGPTAPI(tabId, apiKey, descriptionPrompt);
-  acceptanceCriteria = await callGPTAPI(tabId, apiKey, acceptanceCriteriaPrompt);
+  description = "Title: " + taskTitle + " \n" + await callGPTAPI(tabId, apiKey, descriptionPrompt, workItemType);
+  acceptanceCriteria = await callGPTAPI(tabId, apiKey, acceptanceCriteriaPrompt, workItemType);
 
   runContentScript(tabId, taskTitle, description, acceptanceCriteria, workItemType);
 }
