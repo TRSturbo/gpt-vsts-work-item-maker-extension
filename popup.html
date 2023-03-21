@@ -11,16 +11,18 @@
     <h1 class="title">VSTS-GPT Task Maker</h1>
     <label for="apiKey" class="label">OpenAI API Key:</label>
     <input type="password" id="apiKey" class="input" />
+    <label for="vstsOrgName" class="label">VSTS Organization Name:</label>
+    <input type="text" id="vstsOrgName" class="input" />
     <label for="vstsProjectName" class="label">VSTS Project Name:</label>
     <input type="text" id="vstsProjectName" class="input" />
-    <label for="taskTitle" class="label">Task Title:</label>
+    <label for="taskTitle" class="label">Describe The Task:</label>
     <input type="text" id="taskTitle" class="input" />
     
     <form>
         <select name="workItemType" id="workItemType">
-            <option value="https://ablcode.visualstudio.com/***/_workitems/create/Product%20Backlog%20Item">PBI</option>
-            <option value="https://ablcode.visualstudio.com/***/_workitems/create/Bug">Bug</option>
-            <option value="https://ablcode.visualstudio.com/***/_workitems/create/Feature">Feature</option>
+            <option value="https://$$$.visualstudio.com/***/_workitems/create/Product%20Backlog%20Item">PBI</option>
+            <option value="https://$$$.visualstudio.com/***/_workitems/create/Bug">Bug</option>
+            <option value="https://$$$.visualstudio.com/***/_workitems/create/Feature">Feature</option>
         </select>
     </form>
     <button id="createTask" class="button">Create Task</button>

@@ -25,14 +25,14 @@
     "storage"
   ],
   "host_permissions": [
-    "https://ablcode.visualstudio.com/"
+    "https://*.visualstudio.com/"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://ablcode.visualstudio.com/*"],
+      "matches": ["https://*.visualstudio.com/*"],
       "js": ["content.js"]
     }
   ]
