@@ -55,3 +55,49 @@ This is a chrome extension that helps write various VSTS work items for you. It 
 
 - You can now use your API key to access OpenAI's services, such as their language models and other AI tools.
 
+#Usage
+
+1. To use the extension, you can simply click on the extension icon from your browser, an you will be met with the creation popup:
+
+###The Popup Dialog
+![Popup](/.attachments/popup.png)
+
+2. Fill out the blanks as follows:
+- OpenAI API Key
+    - This is the API key you generated in the setup inscructions above
+- VSTS Organization Name:
+    - The name of your organization. This is to populate the correct URL for creating the work item:
+    - https://{YOUR_ORG_NAME_HERE}.visualstudio.com/
+- VSTS Project Name:
+    - The name of your project within your organization. This is to populate the correct URL for creating the work item:
+    - "https://{YOUR_ORG_NAME_HERE}.visualstudio.com/{YOUR_PROJECT_NAME_HERE}/workitems/create/
+- Describe The Task:
+    - A general description of what you want the task to include. You may be as detailed or as concise as you want, but the more details you provide the close the outcome typically is to your desired outcome.
+    - From this description, the extension will generate:
+        - The title of the task
+        - The description/repro steps for the task
+        - The acceptance criteria for the task
+- Type:
+    - This sleector will allow you to change the desire work item type between:
+        - PBI
+        - Bug
+        - Feature
+
+3. Click "Create Task"
+    - A new tab will open to the creation page of the selected work item type 
+4. Please wait while the GPT API is queries for the needed fields
+    - Any errors that may occur will present themselves in the description and acceptance criteria fields for now
+5. Relax and enjoy as your work items is filled in autmagically!
+
+###Notes:
+- You may of course need to edit the output to your desired needs if it does not completely line up with your expectation.
+
+###Known Issues:
+- The title does not correctly auto populate
+    - Workaround: Copy and paste the title that is also included at the top of the description
+- The extension will not work if you are not logged into VSTS already
+
+###Example Output Screens:
+![Loading Example](/.attachments/loading_example.png)
+![Completed Example](/.attachments/completed_example.png)
+
