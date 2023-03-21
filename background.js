@@ -24,7 +24,7 @@ async function callGPTAPI(tabId, apiKey, prompt, workItemType) {
   if (response.status == 200 && data.choices && data.choices.length > 0) {
     return data.choices[0].message.content.trim();
   } else {
-    runContentScript(tabId, "Error", "Error loading description from OpenAI API, please try again later. Error Code: " + response.status, "Error - " data.error.message, workItemType);
+    runContentScript(tabId, "Error", "Error loading description from OpenAI API, please try again later. Error Code: " + response.status, "Error - " + data.error.message, workItemType);
   }
 
   throw new Error('GPT API response is not as expected');
