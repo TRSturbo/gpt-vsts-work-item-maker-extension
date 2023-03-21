@@ -15,7 +15,7 @@ This is a chrome extension that helps write various VSTS work items for you. It 
     - Stable: Download the latest stable release from the "Releases" page
     - Unstable: Navigate to the repository's main page on GitHub and select the "develop" branch. Click on the "Code" button near the top right corner. Select "Download ZIP" and save the file to your desired location. Once the download is complete, extract the contents of the ZIP file to a folder.
 
-2. # #Load the Unpacked Extension
+2. ## Load the Unpacked Extension
 ### For Google Chrome
 - Open Google Chrome.
 - Click on the menu button (three vertical dots) in the top right corner of the browser.
