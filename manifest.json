@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Task Description and Acceptance Criteria Generator",
+  "version": "1.0",
+  "description": "Generate task descriptions and acceptance criteria using OpenAI GPT API.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+    }
+  },
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://ablcode.visualstudio.com/"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://ablcode.visualstudio.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
