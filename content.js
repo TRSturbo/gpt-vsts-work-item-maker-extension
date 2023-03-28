@@ -42,6 +42,7 @@
       fillField(taskElementSelector, taskTitle);
       fillField('[aria-label="Repro Steps"]', description);
       fillField('[aria-label="Acceptance Criteria"]', acceptanceCriteria);
+      fillField('[aria-label="Effort"]', 0);
     } else {
       fillField(taskElementSelector, taskTitle);
       fillField('[aria-label="Description"]', description);
