@@ -40,6 +40,7 @@
     if (workItemTypeValue.includes("create/Bug")){
       if (fieldValue == "title"){
         fillField(taskElementSelector, contentValue);
+        fillField('[aria-labelledby="__bolt-Effort"]', 0);
       } else if (fieldValue == "description"){
         fillField('[aria-label="Repro Steps"]', contentValue);
       } else if (fieldValue == "ac"){

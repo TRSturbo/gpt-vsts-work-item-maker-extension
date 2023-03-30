@@ -30,6 +30,10 @@ async function callGPTAPI(tabId, apiKey, prompt, workItemType, field, callback) 
     }),
   });
 
+  if (response.status != 200) {
+    return response.body;
+  }
+
   if (!response.body) {
     throw new Error('ReadableStream not yet supported in your browser.');
   }
