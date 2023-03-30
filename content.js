@@ -15,12 +15,12 @@
     }
   };
 
-  const fillField = (selector, value) => {
+  const fillField = (selector, desiredValue) => {
     waitForElement(selector, (element) => {
-      element.focus()
-      element.value = value;
-      element.innerText = value;
-      element.placeholder = value;
+      element.focus();
+      element.value = desiredValue;
+      element.innerText = desiredValue;
+      element.placeholder = desiredValue;
     });
   };
 
@@ -33,7 +33,6 @@
     //so we use the placeholder (that is the same) and update it when loaded for now as a workaround
     let taskElementSelector = '[placeholder="Enter title"]';
     if (fieldValue == 'title' && contentValue != "Loading Title..."){
-      console.log("loading tite if");
       taskElementSelector = '[placeholder="Loading Title..."]'
     }
 

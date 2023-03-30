@@ -42,7 +42,6 @@ async function callGPTAPI(tabId, apiKey, prompt, workItemType, field, callback) 
 const processStream = async () => {
   const { value, done } = await reader.read();
   if (done) {
-    console.log('Stream complete');
     jsonString = '';
     callback(); // Invoke the callback when the stream is complete
     return;
@@ -50,21 +49,18 @@ const processStream = async () => {
 
   jsonString += decoder.decode(value, { stream: true });
 
-  // Check for the closing brace '}' of the JSON object
-  const closingBraceIndex = jsonString.lastIndexOf('}');
-  if (closingBraceIndex !== -1) {
-    // Extract the valid JSON part and keep the rest for future processing
-    const validJsonString = jsonString.substring(0, closingBraceIndex + 1);
-    jsonString = jsonString.substring(closingBraceIndex + 1);
+  // Check if jsonString contains a complete JSON object
+  const endOfObjectIndex = jsonString.indexOf('\n\n');
+  if (endOfObjectIndex !== -1) {
+    const completeJsonObject = jsonString.slice(0, endOfObjectIndex);
+    jsonString = jsonString.slice(endOfObjectIndex + 2); // Remove the processed object from jsonString
 
     try {
-      parsedData = JSON.parse(validJsonString.replace('data: ', ''));
-
-      if (parsedData.choices) {
+      parsedData = JSON.parse(completeJsonObject.replace('data: ', ''));
+      if (parsedData.choices[0].delta.content) {
         content = parsedData.choices[0].delta.content;
         if (field == Field.TITLE) {
           finalTitle += content;
-          runContentScript(tabId, finalTitle, workItemType, field);
         } else if (field == Field.DESCRIPTION) {
           finalDescription += content;
           runContentScript(tabId, finalDescription, workItemType, field);
@@ -74,8 +70,8 @@ const processStream = async () => {
         }
       }
     } catch (error) {
-      // Do nothing, wait for more data
-      console.log("err: " + error + " parsedData: " + JSON.stringify(jsonString));
+      // Log the error and the JSON object causing it
+      console.log("err: " + error + " parsedData: " + JSON.stringify(completeJsonObject));
     }
   }
 
@@ -90,6 +86,7 @@ const processStream = async () => {
     throw new Error('GPT API response is not as expected');
   }
 }
+
 
 
 
@@ -126,6 +123,8 @@ async function fillFields(tabId, apiKey, taskOverview, workItemType) {
   runContentScript(tabId, "Loading Acceptance Criteria...", workItemType, Field.AC);
 
   callGPTAPI(tabId, apiKey, titlePrompt, workItemType, Field.TITLE, function(titleResult) {
+    runContentScript(tabId, finalTitle, workItemType, Field.TITLE);
+    finalDescription += "Title: " + finalTitle + "\n";
     finalTitle = '';
     callGPTAPI(tabId, apiKey, descriptionPrompt, workItemType, Field.DESCRIPTION, function(descResult) {
       finalDescription = '';
