@@ -1,7 +1,9 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
+  background-color: #ffffff;
+  color: #000000;
+  transition: background-color 0.3s;
 }
 
 .container {
@@ -9,8 +11,8 @@ body {
   flex-direction: column;
   gap: 8px;
   padding: 20px;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1), 0 2px 32px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5), 0 2px 32px rgba(0, 0, 0, 0.5);
+  background-color: #f5f5f5;
   width: 300px;
   border-radius: 8px;
 }
@@ -20,25 +22,28 @@ body {
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: bold;
-  color: #333333;
+  color: #000000;
   text-align: center;
 }
 
 .label {
   font-size: 16px;
   font-weight: bold;
-  color: #333333;
+  color: #000000;
 }
 
-.input {
+.input,
+select {
   padding: 8px;
   font-size: 16px;
   border-radius: 4px;
-  border: 1px solid #cccccc;
-  outline: none;
+  border: 1px solid #555555;
+  background-color: #ffffff;
+  color: #000000;
 }
 
-.input:focus {
+.input:focus,
+select:focus {
   border-color: #66afe9;
   box-shadow: 0 0 4px rgba(102, 175, 233, 0.6);
 }
@@ -56,5 +61,43 @@ body {
 }
 
 .button:hover {
+  background-color: #0056b3;
+}
+
+.dark-mode {
+  background-color: #111111;
+  color: #ffffff;
+}
+
+.dark-mode .container {
+  background-color: #222222;
+}
+
+.dark-mode .title {
+  color: #ffffff;
+}
+
+.dark-mode .label {
+  color: #ffffff;
+}
+
+.dark-mode .input,
+.dark-mode select {
+  border-color: #555555;
+  background-color: #111111;
+  color: #ffffff;
+}
+
+.dark-mode .input:focus,
+.dark-mode select:focus {
+  border-color: #66afe9;
+  box-shadow: 0 0 4px rgba(102, 175, 233, 0.6);
+}
+
+.dark-mode .button {
+  background-color: #007bff;
+}
+
+.dark-mode .button:hover {
   background-color: #0056b3;
 }
