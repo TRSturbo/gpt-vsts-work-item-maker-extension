@@ -16,6 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
   getFromStorage('openai_api_key', apiKeyInput);
   getFromStorage('vsts_org_name', vstsOrgNameInput);
   getFromStorage('vsts_project_name', vstsProjectNameInput);
+  getFromStorage('task_overview', taskOverviewInput);
+
+  taskOverviewInput.addEventListener('input', () => {
+    chrome.storage.sync.set({ task_overview: taskOverviewInput.value });
+  });
 
   function getSelectedValue() {
     const selectElement = document.getElementById('workItemType');

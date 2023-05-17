@@ -1,9 +1,16 @@
-//openAI API method
-//on success, returns the trimmed message response
-//on failure, runs the content script with the error details so the user can see
-async function callGPTAPI(tabId, apiKey, prompt, workItemType) {
-  const apiUrl = 'https://api.openai.com/v1/chat/completions';
+const Field = Object.freeze({
+  TITLE: 'title',
+  DESCRIPTION: 'description',
+  AC: 'ac',
+});
 
+let finalTitle = '';
+let finalDescription = '';
+let finalAcceptanceCriteria = '';
+
+async function callGPTAPI(tabId, apiKey, prompt, workItemType, field, callback) {
+  const apiUrl = 'https://api.openai.com/v1/chat/completions';
+  let jsonString = '';
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
@@ -19,29 +26,83 @@ async function callGPTAPI(tabId, apiKey, prompt, workItemType) {
       max_tokens: 2048,
       n: 1,
       temperature: 1,
+      stream: true, // Add the stream parameter
     }),
   });
 
-  const data = await response.json();
-
-  if (response.status == 200 && data.choices && data.choices.length > 0) {
-    return data.choices[0].message.content.trim();
-  } else {
-    runContentScript(tabId, "Error", "Error loading description from OpenAI API, please try again later. Error Code: " + response.status, "Error - " + data.error.message, workItemType);
+  if (response.status != 200) {
+    return response.body;
   }
 
-  throw new Error('GPT API response is not as expected');
+  if (!response.body) {
+    throw new Error('ReadableStream not yet supported in your browser.');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let parsedData = '';
+  let content = '';
+
+const processStream = async () => {
+  const { value, done } = await reader.read();
+  if (done) {
+    jsonString = '';
+    callback(); // Invoke the callback when the stream is complete
+    return;
+  }
+
+  jsonString += decoder.decode(value, { stream: true });
+
+  // Check if jsonString contains a complete JSON object
+  const endOfObjectIndex = jsonString.indexOf('\n\n');
+  if (endOfObjectIndex !== -1) {
+    const completeJsonObject = jsonString.slice(0, endOfObjectIndex);
+    jsonString = jsonString.slice(endOfObjectIndex + 2); // Remove the processed object from jsonString
+
+    try {
+      parsedData = JSON.parse(completeJsonObject.replace('data: ', ''));
+      if (parsedData.choices[0].delta.content) {
+        content = parsedData.choices[0].delta.content;
+        if (field == Field.TITLE) {
+          finalTitle += content;
+        } else if (field == Field.DESCRIPTION) {
+          finalDescription += content;
+          runContentScript(tabId, finalDescription, workItemType, field);
+        } else if (field == Field.AC) {
+          finalAcceptanceCriteria += content;
+          runContentScript(tabId, finalAcceptanceCriteria, workItemType, field);
+        }
+      }
+    } catch (error) {
+      // Log the error and the JSON object causing it
+      console.log("err: " + error + " parsedData: " + JSON.stringify(completeJsonObject));
+    }
+  }
+
+  setTimeout(processStream, 0);
+};
+
+  try {
+    await processStream();
+  } catch (error) {
+    console.error('Error while processing stream:', error);
+    runContentScript(tabId, "Error loading description from OpenAI API, please try again later. Error Code: " + response.status + " Reason: " + error.message, workItemType, Field.DESCRIPTION);
+    throw new Error('GPT API response is not as expected');
+  }
 }
 
+
+
+
 //code to trigger the page content injecting
-async function runContentScript(tabId, taskTitle, description, acceptanceCriteria, workItemType) {
+async function runContentScript(tabId, content, workItemType, field) {
   chrome.scripting.executeScript(
     {
       target: { tabId },
       files: ['content.js'],
     },
     () => {
-      chrome.tabs.sendMessage(tabId, { taskTitle, description, acceptanceCriteria, workItemType });
+      chrome.tabs.sendMessage(tabId, { content, workItemType, field: field });
     }
   );
 }
@@ -61,15 +122,21 @@ async function fillFields(tabId, apiKey, taskOverview, workItemType) {
   }
   let acceptanceCriteriaPrompt = `Please write the acceptance criteria for the following task as described: "${taskOverview}". Be as concice as possible. Include unit testing.`;
   
-  runContentScript(tabId, "Loading Title...", "Loading Description...", "Loading Acceptance Criteria...", workItemType);
+  runContentScript(tabId, "Loading Title...", workItemType, Field.TITLE);
+  runContentScript(tabId, "Loading Description...", workItemType, Field.DESCRIPTION);
+  runContentScript(tabId, "Loading Acceptance Criteria...", workItemType, Field.AC);
 
-  let taskTitle = await callGPTAPI(tabId, apiKey, titlePrompt, workItemType);
-  console.debug("task title: " + taskTitle);
-  runContentScript(tabId, taskTitle, "Loading Description...", "Loading Acceptance Criteria...", workItemType);
-  let description = "Title: " + taskTitle + " \n" + await callGPTAPI(tabId, apiKey, descriptionPrompt, workItemType);
-  runContentScript(tabId, taskTitle, description, "Loading Acceptance Criteria...", workItemType);
-  let acceptanceCriteria = await callGPTAPI(tabId, apiKey, acceptanceCriteriaPrompt, workItemType);
-  runContentScript(tabId, taskTitle, description, acceptanceCriteria, workItemType);
+  callGPTAPI(tabId, apiKey, titlePrompt, workItemType, Field.TITLE, function(titleResult) {
+    runContentScript(tabId, finalTitle, workItemType, Field.TITLE);
+    finalDescription += "Title: " + finalTitle + "\n";
+    finalTitle = '';
+    callGPTAPI(tabId, apiKey, descriptionPrompt, workItemType, Field.DESCRIPTION, function(descResult) {
+      finalDescription = '';
+      callGPTAPI(tabId, apiKey, acceptanceCriteriaPrompt, workItemType, Field.AC, function(acResult) {
+        finalAcceptanceCriteria = '';
+      });
+    });
+  });
 }
 
 //listener function to recieve message from popup.js
