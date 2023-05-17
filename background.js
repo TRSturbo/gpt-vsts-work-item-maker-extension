@@ -20,7 +20,7 @@ async function callGPTAPI(tabId, apiKey, prompt, workItemType, field, callback) 
     body: JSON.stringify({
       model: 'gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: 'You are a software development task creation assistant.' },
+        { role: 'system', content: 'You are a software development task creation assistant. Read over carefully the task description before responding.' },
         { role: 'user', content: prompt },
       ],
       max_tokens: 2048,
@@ -120,7 +120,7 @@ async function fillFields(tabId, apiKey, taskOverview, workItemType) {
   } else {
     descriptionPrompt = `Please write a detailed description for the following task as described: "${taskOverview}" The result should begin with "This effort is to"`;
   }
-  let acceptanceCriteriaPrompt = `Please write the acceptance criteria for the following task as described: "${taskOverview}". Be as concice as possible. Include unit testing.`;
+  let acceptanceCriteriaPrompt = `Please write the acceptance criteria for the following task as described: "${taskOverview}". Be as concice as possible. Include unit testing. Output should be bullet point list format.`;
   
   runContentScript(tabId, "Loading Title...", workItemType, Field.TITLE);
   runContentScript(tabId, "Loading Description...", workItemType, Field.DESCRIPTION);

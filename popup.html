@@ -17,14 +17,20 @@
     <input type="text" id="vstsProjectName" class="input" />
     <label for="taskOverview" class="label">Describe The Task:</label>
     <input type="text" id="taskOverview" class="input" />
-    
+    <label for="workItemType" class="label">Work Item Type:</label>
     <form>
-        <select name="workItemType" id="workItemType">
-            <option value="https://$$$.visualstudio.com/***/_workitems/create/Product%20Backlog%20Item">PBI</option>
-            <option value="https://$$$.visualstudio.com/***/_workitems/create/Bug">Bug</option>
-            <option value="https://$$$.visualstudio.com/***/_workitems/create/Feature">Feature</option>
-        </select>
+      <select name="workItemType" id="workItemType">
+        <option value="https://$$$.visualstudio.com/***/_workitems/create/Product%20Backlog%20Item">PBI</option>
+        <option value="https://$$$.visualstudio.com/***/_workitems/create/Bug">Bug</option>
+        <option value="https://$$$.visualstudio.com/***/_workitems/create/Feature">Feature</option>
+      </select>
     </form>
+
+    <div>
+      <input type="checkbox" id="darkModeToggle" />
+      <label for="darkModeToggle">Dark Mode</label>
+    </div>
+
     <button id="createTask" class="button">Create Task</button>
   </div>
   <script src="popup.js"></script>
